@@ -1,4 +1,5 @@
-let balance = 1000;
+let unlocked = 500;
+let locked = 500;
 
 function openPage(page) {
   let content = document.getElementById("content");
@@ -10,9 +11,11 @@ function openPage(page) {
   if (page === "wallet") {
     content.innerHTML = `
       <h3>💰 Wallet</h3>
-      <p>Balance: ${balance} Chuk</p>
-      <button onclick="earnChuk()">+100 Chuk</button>
-      <button onclick="sendChuk()">-50 Chuk</button>
+      <p>Unlocked: ${unlocked} Chuk</p>
+      <p>Locked: ${locked} Chuk</p>
+
+      <button onclick="earnChuk()">+100 Earn</button>
+      <button onclick="unlockChuk()">Unlock</button>
     `;
   }
 
@@ -30,17 +33,22 @@ function openPage(page) {
 }
 
 function earnChuk() {
-  balance += 100;
+  locked += 100; // masuk ke locked dulu
   openPage("wallet");
 }
 
-function sendChuk() {
-  balance -= 50;
+function unlockChuk() {
+  unlocked += locked;
+  locked = 0;
   openPage("wallet");
 }
 
 function sendGift(amount) {
-  balance -= amount;
-  alert("Gift sent: " + amount + " Chuk 🎉");
+  if (unlocked >= amount) {
+    unlocked -= amount;
+    alert("Gift sent: " + amount + " Chuk 🎉");
+  } else {
+    alert("Saldo tidak cukup ❌");
+  }
   openPage("wallet");
 }
