@@ -9,14 +9,16 @@ function openPage(page) {
   }
 
   if (page === "wallet") {
-    content.innerHTML = `
-      <h3>💰 Wallet</h3>
-      <p>Unlocked: ${unlocked} Chuk</p>
-      <p>Locked: ${locked} Chuk</p>
+  content.innerHTML = `
+    <h3>💰 Wallet</h3>
+    <p>Unlocked: ${unlocked} Chuk</p>
+    <p>Locked: ${locked} Chuk</p>
 
-      <button onclick="earnChuk()">+100 Earn</button>
-      <button onclick="unlockChuk()">Unlock</button>
-    `;
+    <button onclick="earnChuk()">+100 Earn</button>
+    <button onclick="unlockChuk()">Unlock</button>
+    <button onclick="exchangeChuk()">Exchange to Pi</button>
+  `;
+}
   }
 
   if (page === "live") {
