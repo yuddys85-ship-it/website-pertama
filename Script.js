@@ -66,3 +66,6 @@ function exchangeChuk() {
 
   openPage("wallet");
 }
+function loginPi() {
+  alert("Login Pi berhasil (simulasi) ✅");
+}
