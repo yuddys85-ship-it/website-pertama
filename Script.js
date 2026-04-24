@@ -52,3 +52,15 @@ function sendGift(amount) {
   }
   openPage("wallet");
 }
+function exchangeChuk() {
+  let rate = 10000; // 1 Pi = 10,000 Chuk
+
+  if (unlocked >= rate) {
+    unlocked -= rate;
+    alert("Berhasil tukar 10,000 Chuk → 1 Pi 🟡");
+  } else {
+    alert("Chuk tidak cukup untuk exchange ❌");
+  }
+
+  openPage("wallet");
+}
