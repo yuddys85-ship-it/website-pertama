@@ -1,3 +1,5 @@
+let balance = 1000;
+
 function openPage(page) {
   let content = document.getElementById("content");
 
@@ -6,7 +8,12 @@ function openPage(page) {
   }
 
   if (page === "wallet") {
-    content.innerHTML = "💰 Wallet: 1,000 Chuk (demo)";
+    content.innerHTML = `
+      <h3>💰 Wallet</h3>
+      <p>Balance: ${balance} Chuk</p>
+      <button onclick="earnChuk()">+100 Chuk</button>
+      <button onclick="sendChuk()">-50 Chuk</button>
+    `;
   }
 
   if (page === "live") {
@@ -14,6 +21,26 @@ function openPage(page) {
   }
 
   if (page === "gift") {
-    content.innerHTML = "🎁 Send gifts to creators!";
+    content.innerHTML = `
+      <h3>🎁 Gift</h3>
+      <button onclick="sendGift(5)">Heart (5)</button>
+      <button onclick="sendGift(100)">Star (100)</button>
+    `;
   }
+}
+
+function earnChuk() {
+  balance += 100;
+  openPage("wallet");
+}
+
+function sendChuk() {
+  balance -= 50;
+  openPage("wallet");
+}
+
+function sendGift(amount) {
+  balance -= amount;
+  alert("Gift sent: " + amount + " Chuk 🎉");
+  openPage("wallet");
 }
