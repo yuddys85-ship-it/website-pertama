@@ -9,16 +9,15 @@ function openPage(page) {
   }
 
   if (page === "wallet") {
-  content.innerHTML = `
-    <h3>💰 Wallet</h3>
-    <p>Unlocked: ${unlocked} Chuk</p>
-    <p>Locked: ${locked} Chuk</p>
+    content.innerHTML = `
+      <h3>💰 Wallet</h3>
+      <p>Unlocked: ${unlocked} Chuk</p>
+      <p>Locked: ${locked} Chuk</p>
 
-    <button onclick="earnChuk()">+100 Earn</button>
-    <button onclick="unlockChuk()">Unlock</button>
-    <button onclick="exchangeChuk()">Exchange to Pi</button>
-  `;
-}
+      <button onclick="earnChuk()">+100 Earn</button>
+      <button onclick="unlockChuk()">Unlock</button>
+      <button onclick="exchangeChuk()">Exchange to Pi</button>
+    `;
   }
 
   if (page === "live") {
@@ -35,7 +34,7 @@ function openPage(page) {
 }
 
 function earnChuk() {
-  locked += 100; // masuk ke locked dulu
+  locked += 100;
   openPage("wallet");
 }
 
@@ -54,18 +53,20 @@ function sendGift(amount) {
   }
   openPage("wallet");
 }
+
 function exchangeChuk() {
-  let rate = 10000; // 1 Pi = 10,000 Chuk
+  let rate = 10000;
 
   if (unlocked >= rate) {
     unlocked -= rate;
     alert("Berhasil tukar 10,000 Chuk → 1 Pi 🟡");
   } else {
-    alert("Chuk tidak cukup untuk exchange ❌");
+    alert("Chuk tidak cukup ❌");
   }
 
   openPage("wallet");
 }
+
 function loginPi() {
   alert("Login Pi berhasil (simulasi) ✅");
 }
