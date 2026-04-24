@@ -10,19 +10,12 @@ body {
   padding: 20px;
 }
 
-.card {
-  background: rgba(255,255,255,0.2);
-  padding: 15px;
-  margin: 10px;
-  border-radius: 10px;
-}
-
 .menu {
   margin: 20px 0;
 }
 
 button {
-  padding: 10px;
+  padding: 10px 15px;
   margin: 5px;
   border: none;
   border-radius: 8px;
