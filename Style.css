@@ -1,8 +1,8 @@
 body {
   margin: 0;
-  font-family: Arial;
-  background: #6b2cff;
-  color: white;
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: #fff;
   text-align: center;
 }
 
@@ -10,24 +10,67 @@ body {
   padding: 20px;
 }
 
-.menu {
-  margin: 20px 0;
+/* TITLE */
+h1 {
+  font-size: 28px;
+  margin-bottom: 5px;
 }
 
+p {
+  color: #cbd5f5;
+}
+
+/* BUTTON */
 button {
-  padding: 10px 15px;
-  margin: 5px;
+  background: #2563eb;
+  color: white;
   border: none;
-  border-radius: 8px;
-  background: white;
-  color: #6b2cff;
+  padding: 12px 16px;
+  margin: 5px;
+  border-radius: 10px;
   cursor: pointer;
-  font-weight: bold;
+  font-size: 14px;
+  transition: 0.2s;
 }
 
+button:hover {
+  background: #1e40af;
+}
+
+/* MENU */
+.menu {
+  margin-top: 15px;
+}
+
+/* CONTENT BOX */
 #content {
   margin-top: 20px;
   padding: 15px;
-  background: rgba(0,0,0,0.2);
-  border-radius: 10px;
+  background: #1e293b;
+  border-radius: 12px;
+}
+
+/* WALLET STYLE */
+#content p {
+  font-size: 16px;
+  margin: 8px 0;
+}
+
+/* CARD STYLE */
+.card {
+  background: #1e293b;
+  padding: 15px;
+  border-radius: 12px;
+  margin: 10px 0;
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  h1 {
+    font-size: 22px;
+  }
+
+  button {
+    width: 100%;
+  }
 }
