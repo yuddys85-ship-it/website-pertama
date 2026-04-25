@@ -5,7 +5,6 @@
   <title>Chuk an Chukk LEGEND</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- STYLE -->
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -14,7 +13,7 @@
 <div class="app">
 
   <!-- HEADER -->
-  <h1>Chuk an Chukk 🚀 LEGEND</h1>
+  <h1>Chuk an Chukk 🚀</h1>
   <p>Realtime Wallet System</p>
 
   <!-- USER INFO -->
@@ -33,21 +32,21 @@
     <button data-page="gift">Gift</button>
   </div>
 
-  <!-- CONTENT -->
+  <!-- CONTENT AREA -->
   <div id="content">
-    <p>Welcome to LEGEND SYSTEM ⚡</p>
+    <p>Silakan login untuk mulai 🚀</p>
   </div>
 
 </div>
 
-<!-- SCRIPT -->
+<!-- SCRIPT FIREBASE + APP LOGIC -->
 <script type="module" src="script.js"></script>
 
-<!-- UI BINDING ONLY -->
+<!-- UI BINDING (LOGIN + MENU CLICK) -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-  // LOGIN
+  // LOGIN BUTTON
   document.getElementById("loginBtn").addEventListener("click", () => {
     window.loginPi();
   });
