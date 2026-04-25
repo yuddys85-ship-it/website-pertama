@@ -1,11 +1,18 @@
+// GLOBAL STATE
 let unlocked = 0;
 let locked = 0;
 
+// =======================
+// NAVIGATION
+// =======================
 function openPage(page) {
-  let content = document.getElementById("content");
+  const content = document.getElementById("content");
 
   if (page === "home") {
-    content.innerHTML = "🏠 Home Page - Welcome back!";
+    content.innerHTML = `
+      <h3>🏠 Home</h3>
+      <p>Welcome back 👋</p>
+    `;
   }
 
   if (page === "wallet") {
@@ -21,7 +28,10 @@ function openPage(page) {
   }
 
   if (page === "live") {
-    content.innerHTML = "📡 Live Stream coming soon...";
+    content.innerHTML = `
+      <h3>📡 Live</h3>
+      <p>Live streaming coming soon...</p>
+    `;
   }
 
   if (page === "gift") {
@@ -33,24 +43,38 @@ function openPage(page) {
   }
 }
 
-// SAVE FIREBASE
+// =======================
+// FIREBASE SAVE
+// =======================
 async function saveData() {
   if (!window.currentUser) return;
 
-  const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+  const { doc, setDoc } = await import(
+    "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js"
+  );
 
-  await setDoc(doc(window.db, "users", window.currentUser.uid), {
-    unlocked: unlocked,
-    locked: locked
-  }, { merge: true });
+  await setDoc(
+    doc(window.db, "users", window.currentUser.uid),
+    {
+      unlocked: unlocked,
+      locked: locked
+    },
+    { merge: true }
+  );
 }
 
+// =======================
+// ACTIONS
+// =======================
+
+// Earn
 function earnChuk() {
   locked += 100;
   saveData();
   openPage("wallet");
 }
 
+// Unlock
 function unlockChuk() {
   unlocked += locked;
   locked = 0;
@@ -58,10 +82,11 @@ function unlockChuk() {
   openPage("wallet");
 }
 
+// Send Gift
 function sendGift(amount) {
   if (unlocked >= amount) {
     unlocked -= amount;
-    alert("Gift sent: " + amount + " Chuk 🎉");
+    alert("Gift sent 🎉");
   } else {
     alert("Saldo tidak cukup ❌");
   }
@@ -70,12 +95,13 @@ function sendGift(amount) {
   openPage("wallet");
 }
 
+// Exchange
 function exchangeChuk() {
-  let rate = 10000;
+  const rate = 10000;
 
   if (unlocked >= rate) {
     unlocked -= rate;
-    alert("Berhasil tukar 10,000 Chuk → 1 Pi 🟡");
+    alert("Berhasil tukar 10K Chuk → 1 Pi 🟡");
   } else {
     alert("Chuk tidak cukup ❌");
   }
