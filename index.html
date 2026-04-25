@@ -32,79 +32,170 @@
 <!-- 🔥 FIREBASE FULL SYSTEM -->
 <script type="module">
 
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAVTEmz3KXZ8AUK5bV1eyGYeowZAVawLXA",
-    authDomain: "chuk-apk-a8d8a.firebaseapp.com",
-    projectId: "chuk-apk-a8d8a",
-    storageBucket: "chuk-apk-a8d8a.firebasestorage.app",
-    messagingSenderId: "387902539002",
-    appId: "1:387902539002:web:b7d4543ef8a2cc2ea3f543"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyAVTEmz3KXZ8AUK5bV1eyGYeowZAVawLXA",
+  authDomain: "chuk-apk-a8d8a.firebaseapp.com",
+  projectId: "chuk-apk-a8d8a",
+  storageBucket: "chuk-apk-a8d8a.firebasestorage.app",
+  messagingSenderId: "387902539002",
+  appId: "1:387902539002:web:b7d4543ef8a2cc2ea3f543"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+// INIT
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-  // GLOBAL USER
-  window.currentUser = null;
+// GLOBAL
+window.db = db;
+window.currentUser = null;
 
-  // LOAD DATA USER
-  async function loadUserData(user) {
+// LOAD USER DATA
+async function loadUserData(user) {
+  const userRef = doc(db, "users", user.uid);
+  const docSnap = await getDoc(userRef);
+
+  if (docSnap.exists()) {
+    const data = docSnap.data();
+
+    window.unlocked = data.unlocked || 0;
+    window.locked = data.locked || 0;
+
+    openPage("wallet");
+  }
+}
+
+// LOGIN
+window.loginPi = async function () {
+  const provider = new GoogleAuthProvider();
+
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+
+    window.currentUser = user;
+
+    alert("Login sukses 🔥 " + user.displayName);
+
     const userRef = doc(db, "users", user.uid);
     const docSnap = await getDoc(userRef);
 
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-
-      window.unlocked = data.unlocked || 0;
-      window.locked = data.locked || 0;
-
-      openPage("wallet");
+    if (!docSnap.exists()) {
+      await setDoc(userRef, {
+        name: user.displayName,
+        email: user.email,
+        unlocked: 500,
+        locked: 500,
+        pi: 10
+      });
     }
+
+    loadUserData(user);
+
+  } catch (error) {
+    console.log(error);
+    alert("Login gagal ❌");
   }
-
-  // LOGIN GOOGLE REAL
-  window.loginPi = async function () {
-    const provider = new GoogleAuthProvider();
-
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-
-      window.currentUser = user;
-
-      alert("Login sukses 🔥 " + user.displayName);
-
-      const userRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(userRef);
-
-      // kalau user baru
-      if (!docSnap.exists()) {
-        await setDoc(userRef, {
-          name: user.displayName,
-          email: user.email,
-          unlocked: 500,
-          locked: 500,
-          pi: 10
-        });
-      }
-
-      loadUserData(user);
-
-    } catch (error) {
-      console.log(error);
-      alert("Login gagal ❌");
-    }
-  };
+};
 
 </script>
 
-<!-- SCRIPT APP -->
-<script src="./script.js"></script>
+<!-- 🔥 APP LOGIC -->
+<script>
+
+let unlocked = 0;
+let locked = 0;
+
+// NAVIGASI
+function openPage(page) {
+  let content = document.getElementById("content");
+
+  if (page === "home") {
+    content.innerHTML = "🏠 Home Page - Welcome back!";
+  }
+
+  if (page === "wallet") {
+    content.innerHTML = `
+      <h3>💰 Wallet</h3>
+      <p>Unlocked: ${unlocked} Chuk</p>
+      <p>Locked: ${locked} Chuk</p>
+
+      <button onclick="earnChuk()">+100 Earn</button>
+      <button onclick="unlockChuk()">Unlock</button>
+      <button onclick="exchangeChuk()">Exchange to Pi</button>
+    `;
+  }
+
+  if (page === "live") {
+    content.innerHTML = "📡 Live Stream coming soon...";
+  }
+
+  if (page === "gift") {
+    content.innerHTML = `
+      <h3>🎁 Gift</h3>
+      <button onclick="sendGift(5)">Heart (5)</button>
+      <button onclick="sendGift(100)">Star (100)</button>
+    `;
+  }
+}
+
+// SAVE FIREBASE
+async function saveData() {
+  if (!window.currentUser) return;
+
+  const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+
+  await setDoc(doc(window.db, "users", window.currentUser.uid), {
+    unlocked: unlocked,
+    locked: locked
+  }, { merge: true });
+}
+
+// ACTIONS
+function earnChuk() {
+  locked += 100;
+  saveData();
+  openPage("wallet");
+}
+
+function unlockChuk() {
+  unlocked += locked;
+  locked = 0;
+  saveData();
+  openPage("wallet");
+}
+
+function sendGift(amount) {
+  if (unlocked >= amount) {
+    unlocked -= amount;
+    alert("Gift sent 🎉");
+  } else {
+    alert("Saldo tidak cukup ❌");
+  }
+
+  saveData();
+  openPage("wallet");
+}
+
+function exchangeChuk() {
+  let rate = 10000;
+
+  if (unlocked >= rate) {
+    unlocked -= rate;
+    alert("Tukar 10K Chuk → 1 Pi 🟡");
+  } else {
+    alert("Chuk tidak cukup ❌");
+  }
+
+  saveData();
+  openPage("wallet");
+}
+
+</script>
 
 </body>
 </html>
