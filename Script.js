@@ -1,7 +1,6 @@
 let unlocked = 0;
 let locked = 0;
 
-// NAVIGASI HALAMAN
 function openPage(page) {
   let content = document.getElementById("content");
 
@@ -34,20 +33,31 @@ function openPage(page) {
   }
 }
 
-// TAMBAH CHUK (SIMULASI)
+// SAVE FIREBASE
+async function saveData() {
+  if (!window.currentUser) return;
+
+  const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+
+  await setDoc(doc(window.db, "users", window.currentUser.uid), {
+    unlocked: unlocked,
+    locked: locked
+  }, { merge: true });
+}
+
 function earnChuk() {
   locked += 100;
+  saveData();
   openPage("wallet");
 }
 
-// UNLOCK CHUK
 function unlockChuk() {
   unlocked += locked;
   locked = 0;
+  saveData();
   openPage("wallet");
 }
 
-// KIRIM GIFT
 function sendGift(amount) {
   if (unlocked >= amount) {
     unlocked -= amount;
@@ -55,10 +65,11 @@ function sendGift(amount) {
   } else {
     alert("Saldo tidak cukup ❌");
   }
+
+  saveData();
   openPage("wallet");
 }
 
-// EXCHANGE KE PI (SIMULASI)
 function exchangeChuk() {
   let rate = 10000;
 
@@ -69,5 +80,6 @@ function exchangeChuk() {
     alert("Chuk tidak cukup ❌");
   }
 
+  saveData();
   openPage("wallet");
 }
