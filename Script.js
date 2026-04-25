@@ -1,6 +1,7 @@
-let unlocked = 500;
-let locked = 500;
+let unlocked = 0;
+let locked = 0;
 
+// NAVIGASI HALAMAN
 function openPage(page) {
   let content = document.getElementById("content");
 
@@ -33,17 +34,20 @@ function openPage(page) {
   }
 }
 
+// TAMBAH CHUK (SIMULASI)
 function earnChuk() {
   locked += 100;
   openPage("wallet");
 }
 
+// UNLOCK CHUK
 function unlockChuk() {
   unlocked += locked;
   locked = 0;
   openPage("wallet");
 }
 
+// KIRIM GIFT
 function sendGift(amount) {
   if (unlocked >= amount) {
     unlocked -= amount;
@@ -54,6 +58,7 @@ function sendGift(amount) {
   openPage("wallet");
 }
 
+// EXCHANGE KE PI (SIMULASI)
 function exchangeChuk() {
   let rate = 10000;
 
@@ -65,8 +70,4 @@ function exchangeChuk() {
   }
 
   openPage("wallet");
-}
-
-function loginPi() {
-  alert("Login Pi berhasil (simulasi) ✅");
 }
