@@ -15,9 +15,9 @@
 
   <!-- HEADER -->
   <h1>Chuk an Chukk 🚀 LEGEND</h1>
-  <p>Realtime Wallet • Referral • Reward System</p>
+  <p>Realtime Wallet System</p>
 
-  <!-- USER INFO (future realtime) -->
+  <!-- USER INFO -->
   <div id="userBox">
     <p id="userName">Not logged in</p>
   </div>
@@ -25,26 +25,25 @@
   <!-- LOGIN -->
   <button id="loginBtn">Login with Google</button>
 
-  <!-- MENU NAV -->
+  <!-- MENU -->
   <div class="menu">
     <button data-page="home">Home</button>
     <button data-page="wallet">Wallet</button>
     <button data-page="live">Live</button>
     <button data-page="gift">Gift</button>
-    <button data-page="leaderboard">Rank</button>
   </div>
 
-  <!-- MAIN CONTENT -->
+  <!-- CONTENT -->
   <div id="content">
     <p>Welcome to LEGEND SYSTEM ⚡</p>
   </div>
 
 </div>
 
-<!-- MAIN SCRIPT -->
+<!-- SCRIPT -->
 <script type="module" src="script.js"></script>
 
-<!-- UI CONTROLLER (clean binding only) -->
+<!-- UI BINDING ONLY -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -53,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.loginPi();
   });
 
-  // NAVIGATION SYSTEM (scalable)
+  // MENU NAVIGATION
   document.querySelectorAll("[data-page]").forEach(btn => {
     btn.addEventListener("click", () => {
       window.openPage(btn.dataset.page);
