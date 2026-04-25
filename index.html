@@ -1,7 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chuk an Chukk</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="app">
+
+  <h1>Chuk an Chukk 🚀</h1>
+  <p>Live Social App for Pi Network</p>
+
+  <button onclick="loginPi()">Login with Pi</button>
+
+  <div class="menu">
+    <button onclick="openPage('home')">Home</button>
+    <button onclick="openPage('wallet')">Wallet</button>
+    <button onclick="openPage('live')">Live</button>
+    <button onclick="openPage('gift')">Gift</button>
+  </div>
+
+  <div id="content">
+    <p>Welcome to Chuk an Chukk 👋</p>
+  </div>
+
+</div>
+
+<!-- 🔥 FIREBASE FULL SYSTEM -->
 <script type="module">
+
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAVTEmz3KXZ8AUK5bV1eyGYeowZAVawLXA",
@@ -16,6 +49,25 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
+  // GLOBAL USER
+  window.currentUser = null;
+
+  // LOAD DATA USER
+  async function loadUserData(user) {
+    const userRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(userRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+
+      window.unlocked = data.unlocked || 0;
+      window.locked = data.locked || 0;
+
+      openPage("wallet");
+    }
+  }
+
+  // LOGIN GOOGLE REAL
   window.loginPi = async function () {
     const provider = new GoogleAuthProvider();
 
@@ -23,22 +75,36 @@
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
+      window.currentUser = user;
+
       alert("Login sukses 🔥 " + user.displayName);
 
-      await setDoc(doc(db, "users", user.uid), {
-        name: user.displayName,
-        email: user.email,
-        unlocked: 500,
-        locked: 500,
-        pi: 10
-      });
+      const userRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(userRef);
+
+      // kalau user baru
+      if (!docSnap.exists()) {
+        await setDoc(userRef, {
+          name: user.displayName,
+          email: user.email,
+          unlocked: 500,
+          locked: 500,
+          pi: 10
+        });
+      }
+
+      loadUserData(user);
 
     } catch (error) {
-      alert("Login gagal ❌");
       console.log(error);
+      alert("Login gagal ❌");
     }
   };
+
 </script>
 
+<!-- SCRIPT APP -->
 <script src="./script.js"></script>
+
 </body>
+</html>
