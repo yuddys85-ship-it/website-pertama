@@ -2,14 +2,18 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/fireba
 import {
   getAuth,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
 import {
   getFirestore,
   doc,
   setDoc,
-  getDoc
+  getDoc,
+  onSnapshot,
+  updateDoc,
+  increment
 } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 /* =======================
@@ -28,30 +32,76 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* =======================
-   GLOBAL STATE (LEGEND)
-======================= */
 window.db = db;
 window.currentUser = null;
 
+/* =======================
+   STATE
+======================= */
 window.state = {
   unlocked: 0,
   locked: 0,
-  loading: false,
-  lastEarn: 0,
   transactions: [],
-  referralCode: ""
+  lastEarn: 0
 };
 
 /* =======================
-   UTIL: TRANSACTION
+   AUTH AUTO DETECT
 ======================= */
-function addTransaction(type, amount) {
-  window.state.transactions.push({
-    type,
-    amount,
-    time: Date.now()
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    window.currentUser = user;
+    document.getElementById("userName").innerText = user.displayName;
+
+    listenUserRealtime(user.uid);
+    openPage("wallet");
+  }
+});
+
+/* =======================
+   LOGIN
+======================= */
+window.loginPi = async function () {
+  const provider = new GoogleAuthProvider();
+  await signInWithPopup(auth, provider);
+};
+
+/* =======================
+   REALTIME LISTENER (LEGEND CORE)
+======================= */
+function listenUserRealtime(uid) {
+  const ref = doc(db, "users", uid);
+
+  onSnapshot(ref, (snap) => {
+    if (!snap.exists()) return;
+
+    const data = snap.data();
+
+    window.state.unlocked = data.unlocked || 0;
+    window.state.locked = data.locked || 0;
+    window.state.transactions = data.transactions || [];
+
+    if (document.getElementById("content")) {
+      openPage("wallet");
+    }
   });
+}
+
+/* =======================
+   SAVE / UPDATE SAFE
+======================= */
+async function ensureUser(uid) {
+  const ref = doc(db, "users", uid);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      unlocked: 500,
+      locked: 500,
+      referralCode: uid.slice(0, 6),
+      transactions: []
+    });
+  }
 }
 
 /* =======================
@@ -62,90 +112,78 @@ function canEarn() {
 }
 
 /* =======================
-   LOAD USER DATA
+   TRANSACTION
 ======================= */
-async function loadUserData(user) {
-  const ref = doc(db, "users", user.uid);
-  const snap = await getDoc(ref);
-
-  if (snap.exists()) {
-    const data = snap.data();
-
-    window.state.unlocked = data.unlocked || 0;
-    window.state.locked = data.locked || 0;
-    window.state.transactions = data.transactions || [];
-    window.state.referralCode = data.referralCode || user.uid.slice(0, 6);
-
-    document.getElementById("userName").innerText =
-      user.displayName || "User";
-
-    openPage("wallet");
-  }
+function addTransaction(type, amount) {
+  window.state.transactions.push({
+    type,
+    amount,
+    time: Date.now()
+  });
 }
 
 /* =======================
-   LOGIN SYSTEM
+   ACTIONS (LEGEND FINAL)
 ======================= */
-window.loginPi = async function () {
-  const provider = new GoogleAuthProvider();
+window.earnChuk = async function () {
+  if (!canEarn()) return alert("Cooldown ⏳");
 
-  try {
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
+  const uid = window.currentUser.uid;
+  await updateDoc(doc(db, "users", uid), {
+    locked: increment(100)
+  });
 
-    window.currentUser = user;
+  window.state.lastEarn = Date.now();
+  addTransaction("earn", 100);
+};
 
-    const ref = doc(db, "users", user.uid);
-    const snap = await getDoc(ref);
+window.unlockChuk = async function () {
+  const uid = window.currentUser.uid;
 
-    if (!snap.exists()) {
-      await setDoc(ref, {
-        name: user.displayName,
-        email: user.email,
-        unlocked: 500,
-        locked: 500,
-        referralCode: user.uid.slice(0, 6),
-        transactions: []
-      });
-    }
+  await updateDoc(doc(db, "users", uid), {
+    unlocked: increment(window.state.locked),
+    locked: 0
+  });
 
-    loadUserData(user);
+  addTransaction("unlock", window.state.locked);
+};
 
-  } catch (err) {
-    alert("Login gagal ❌");
-  }
+window.sendGift = async function (amount) {
+  const uid = window.currentUser.uid;
+
+  if (window.state.unlocked < amount)
+    return alert("Saldo tidak cukup ❌");
+
+  await updateDoc(doc(db, "users", uid), {
+    unlocked: increment(-amount)
+  });
+
+  addTransaction("gift", amount);
+};
+
+window.exchangeChuk = async function () {
+  const rate = 10000;
+  const uid = window.currentUser.uid;
+
+  if (window.state.unlocked < rate)
+    return alert("Chuk tidak cukup ❌");
+
+  await updateDoc(doc(db, "users", uid), {
+    unlocked: increment(-rate)
+  });
+
+  addTransaction("exchange", rate);
 };
 
 /* =======================
-   SAVE DATA
-======================= */
-async function saveData() {
-  if (!window.currentUser) return;
-
-  await setDoc(doc(db, "users", window.currentUser.uid), {
-    unlocked: window.state.unlocked,
-    locked: window.state.locked,
-    transactions: window.state.transactions,
-    referralCode: window.state.referralCode
-  }, { merge: true });
-}
-
-/* =======================
-   NAVIGATION SYSTEM
+   NAVIGATION
 ======================= */
 window.openPage = function (page) {
   const c = document.getElementById("content");
 
-  if (page === "home") {
-    c.innerHTML = `
-      <h3>🏠 Home</h3>
-      <p>Welcome back ⚡</p>
-    `;
-  }
-
   if (page === "wallet") {
     c.innerHTML = `
-      <h3>💰 Wallet LEGEND</h3>
+      <h3>💰 LEGEND WALLET</h3>
 
       <p>Unlocked: ${window.state.unlocked}</p>
       <p>Locked: ${window.state.locked}</p>
@@ -154,7 +192,7 @@ window.openPage = function (page) {
       <button onclick="unlockChuk()">Unlock</button>
       <button onclick="exchangeChuk()">Exchange</button>
 
-      <h4 style="margin-top:15px;">📊 Last Transactions</h4>
+      <h4 style="margin-top:15px;">📊 Transactions</h4>
 
       ${window.state.transactions.slice(-5).map(t => `
         <div class="rank">
@@ -165,11 +203,8 @@ window.openPage = function (page) {
     `;
   }
 
-  if (page === "live") {
-    c.innerHTML = `
-      <h3>📡 Live</h3>
-      <p>Coming soon...</p>
-    `;
+  if (page === "home") {
+    c.innerHTML = "<h3>🏠 Home</h3><p>Legend System Active ⚡</p>";
   }
 
   if (page === "gift") {
@@ -180,87 +215,7 @@ window.openPage = function (page) {
     `;
   }
 
-  if (page === "leaderboard") {
-    c.innerHTML = `
-      <h3>🏆 Leaderboard</h3>
-      <p>Coming in next update ⚡</p>
-    `;
+  if (page === "live") {
+    c.innerHTML = "<h3>📡 Live</h3><p>Coming soon</p>";
   }
-};
-
-/* =======================
-   EARN SYSTEM (ANTI SPAM)
-======================= */
-window.earnChuk = async function () {
-  if (!canEarn() || window.state.loading) {
-    alert("Tunggu cooldown ⏳");
-    return;
-  }
-
-  window.state.loading = true;
-
-  window.state.locked += 100;
-  window.state.lastEarn = Date.now();
-
-  addTransaction("earn", 100);
-
-  await saveData();
-
-  window.state.loading = false;
-  openPage("wallet");
-};
-
-/* =======================
-   UNLOCK
-======================= */
-window.unlockChuk = async function () {
-  if (window.state.loading) return;
-
-  window.state.loading = true;
-
-  window.state.unlocked += window.state.locked;
-  window.state.locked = 0;
-
-  addTransaction("unlock", window.state.unlocked);
-
-  await saveData();
-
-  window.state.loading = false;
-  openPage("wallet");
-};
-
-/* =======================
-   GIFT SYSTEM
-======================= */
-window.sendGift = async function (amount) {
-  if (window.state.unlocked < amount) {
-    alert("Saldo tidak cukup ❌");
-    return;
-  }
-
-  window.state.unlocked -= amount;
-
-  addTransaction("gift", amount);
-
-  await saveData();
-  openPage("wallet");
-};
-
-/* =======================
-   EXCHANGE SYSTEM
-======================= */
-window.exchangeChuk = async function () {
-  const rate = 10000;
-
-  if (window.state.unlocked < rate) {
-    alert("Chuk tidak cukup ❌");
-    return;
-  }
-
-  window.state.unlocked -= rate;
-
-  addTransaction("exchange", rate);
-
-  await saveData();
-  openPage("wallet");
 };
