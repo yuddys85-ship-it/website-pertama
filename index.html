@@ -1,34 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Chuk an Chukk</title>
-  <link rel="stylesheet" href="style.css">
-</head>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-<body>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAVTEmz3KXZ8AUK5bV1eyGYeowZAVawLXA",
+    authDomain: "chuk-apk-a8d8a.firebaseapp.com",
+    projectId: "chuk-apk-a8d8a",
+    storageBucket: "chuk-apk-a8d8a.firebasestorage.app",
+    messagingSenderId: "387902539002",
+    appId: "1:387902539002:web:b7d4543ef8a2cc2ea3f543"
+  };
 
-<div class="app">
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-  <h1>Chuk an Chukk 🚀</h1>
-  <p>Live Social App for Pi Network</p>
+  window.loginPi = async function () {
+    const provider = new GoogleAuthProvider();
 
-  <button onclick="loginPi()">Login with Pi</button>
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
 
-  <div class="menu">
-    <button onclick="openPage('home')">Home</button>
-    <button onclick="openPage('wallet')">Wallet</button>
-    <button onclick="openPage('live')">Live</button>
-    <button onclick="openPage('gift')">Gift</button>
-  </div>
+      alert("Login sukses 🔥 " + user.displayName);
 
-  <div id="content">
-    <p>Welcome to Chuk an Chukk 👋</p>
-  </div>
+      await setDoc(doc(db, "users", user.uid), {
+        name: user.displayName,
+        email: user.email,
+        unlocked: 500,
+        locked: 500,
+        pi: 10
+      });
 
-</div>
+    } catch (error) {
+      alert("Login gagal ❌");
+      console.log(error);
+    }
+  };
+</script>
 
 <script src="./script.js"></script>
-
 </body>
-</html>
