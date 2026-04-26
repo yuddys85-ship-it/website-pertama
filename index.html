@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Chuk an Chukk LEGEND</title>
+  <title>Chuk an Chukk 🚀</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- STYLE -->
@@ -17,7 +17,7 @@
   <h1>Chuk an Chukk 🚀</h1>
   <p>Realtime Wallet Firebase App</p>
 
-  <!-- USER INFO -->
+  <!-- USER -->
   <div id="userBox">
     <p id="userName">Not logged in</p>
   </div>
@@ -41,29 +41,32 @@
 </div>
 
 <!-- =========================
-     SCRIPT APP (WAJIB)
+     SCRIPT UTAMA (WAJIB)
 ========================= -->
-<script type="module" src="script.js"></script>
+<script type="module" src="./script.js"></script>
 
 <!-- =========================
-     UI CONTROL (AMAN)
+     CONTROL UI (ANTI ERROR)
 ========================= -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
+  console.log("INDEX READY ✅");
+
   // LOGIN BUTTON
   const loginBtn = document.getElementById("loginBtn");
+
   if (loginBtn) {
     loginBtn.addEventListener("click", () => {
       if (window.loginPi) {
         window.loginPi();
       } else {
-        alert("Script belum siap ❌");
+        console.log("Script belum load ❌");
       }
     });
   }
 
-  // MENU NAVIGATION
+  // MENU NAV
   document.querySelectorAll("[data-page]").forEach(btn => {
     btn.addEventListener("click", () => {
       if (window.openPage) {
