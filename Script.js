@@ -16,9 +16,9 @@ import {
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-/* =======================
+/* =========================
    FIREBASE CONFIG
-======================= */
+========================= */
 const firebaseConfig = {
   apiKey: "AIzaSyAVTEmz3KXZ8AUK5bV1eyGYeowZAVawLXA",
   authDomain: "chuk-apk-a8d8a.firebaseapp.com",
@@ -28,27 +28,26 @@ const firebaseConfig = {
   appId: "1:387902539002:web:b7d4543ef8a2cc2ea3f543"
 };
 
-/* =======================
+/* =========================
    INIT FIREBASE
-======================= */
+========================= */
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* =======================
+/* =========================
    GLOBAL STATE
-======================= */
+========================= */
 window.currentUser = null;
-window.db = db;
 
-window.state = {
+let state = {
   unlocked: 0,
   locked: 0
 };
 
-/* =======================
+/* =========================
    LOGIN GOOGLE
-======================= */
+========================= */
 window.loginPi = async function () {
   const provider = new GoogleAuthProvider();
 
@@ -57,39 +56,36 @@ window.loginPi = async function () {
     const user = result.user;
 
     window.currentUser = user;
-
     document.getElementById("userName").innerText = user.displayName;
 
-    await ensureUser(user.uid);
-
-    listenRealtime(user.uid);
+    await createUserIfNotExist(user.uid);
+    listenUser(user.uid);
 
     openPage("wallet");
 
   } catch (err) {
-    alert("Login gagal ❌");
     console.log(err);
+    alert("Login gagal ❌");
   }
 };
 
-/* =======================
-   AUTO LOGIN DETECT
-======================= */
+/* =========================
+   AUTO LOGIN
+========================= */
 onAuthStateChanged(auth, (user) => {
   if (user) {
     window.currentUser = user;
     document.getElementById("userName").innerText = user.displayName;
 
-    ensureUser(user.uid);
-    listenRealtime(user.uid);
-    openPage("wallet");
+    createUserIfNotExist(user.uid);
+    listenUser(user.uid);
   }
 });
 
-/* =======================
-   CREATE USER IF NOT EXISTS
-======================= */
-async function ensureUser(uid) {
+/* =========================
+   CREATE USER
+========================= */
+async function createUserIfNotExist(uid) {
   const ref = doc(db, "users", uid);
   const snap = await getDoc(ref);
 
@@ -97,15 +93,15 @@ async function ensureUser(uid) {
     await setDoc(ref, {
       unlocked: 500,
       locked: 500,
-      created: Date.now()
+      createdAt: Date.now()
     });
   }
 }
 
-/* =======================
+/* =========================
    REALTIME LISTENER
-======================= */
-function listenRealtime(uid) {
+========================= */
+function listenUser(uid) {
   const ref = doc(db, "users", uid);
 
   onSnapshot(ref, (snap) => {
@@ -113,31 +109,31 @@ function listenRealtime(uid) {
 
     const data = snap.data();
 
-    window.state.unlocked = data.unlocked || 0;
-    window.state.locked = data.locked || 0;
+    state.unlocked = data.unlocked || 0;
+    state.locked = data.locked || 0;
 
-    if (document.getElementById("content")) {
-      openPage("wallet");
-    }
+    openPage("wallet");
   });
 }
 
-/* =======================
-   NAVIGATION SYSTEM
-======================= */
+/* =========================
+   NAVIGATION
+========================= */
 window.openPage = function (page) {
-  const c = document.getElementById("content");
+  const content = document.getElementById("content");
+
+  if (!content) return;
 
   if (page === "home") {
-    c.innerHTML = "<h3>🏠 Home</h3><p>Welcome back!</p>";
+    content.innerHTML = "<h3>🏠 Home</h3><p>Welcome back 👋</p>";
   }
 
   if (page === "wallet") {
-    c.innerHTML = `
+    content.innerHTML = `
       <h3>💰 Wallet</h3>
 
-      <p>Unlocked: ${window.state.unlocked}</p>
-      <p>Locked: ${window.state.locked}</p>
+      <p>Unlocked: ${state.unlocked}</p>
+      <p>Locked: ${state.locked}</p>
 
       <button onclick="earn()">+100 Earn</button>
       <button onclick="unlock()">Unlock</button>
@@ -146,61 +142,62 @@ window.openPage = function (page) {
   }
 
   if (page === "live") {
-    c.innerHTML = "<h3>📡 Live</h3><p>Coming soon...</p>";
+    content.innerHTML = "<h3>📡 Live</h3><p>Coming soon...</p>";
   }
 
   if (page === "gift") {
-    c.innerHTML = `
+    content.innerHTML = `
       <h3>🎁 Gift</h3>
-      <button onclick="gift(5)">Heart</button>
-      <button onclick="gift(100)">Star</button>
+      <button onclick="gift(5)">Heart (5)</button>
+      <button onclick="gift(100)">Star (100)</button>
     `;
   }
 };
 
-/* =======================
+/* =========================
    ACTIONS
-======================= */
+========================= */
 window.earn = async function () {
-  const uid = window.currentUser.uid;
+  if (!window.currentUser) return;
 
-  await updateDoc(doc(db, "users", uid), {
+  await updateDoc(doc(db, "users", window.currentUser.uid), {
     locked: increment(100)
   });
 };
 
 window.unlock = async function () {
-  const uid = window.currentUser.uid;
+  if (!window.currentUser) return;
 
-  await updateDoc(doc(db, "users", uid), {
-    unlocked: increment(window.state.locked),
+  await updateDoc(doc(db, "users", window.currentUser.uid), {
+    unlocked: increment(state.locked),
     locked: 0
   });
 };
 
 window.gift = async function (amount) {
-  const uid = window.currentUser.uid;
+  if (!window.currentUser) return;
 
-  if (window.state.unlocked < amount) {
+  if (state.unlocked < amount) {
     return alert("Saldo tidak cukup ❌");
   }
 
-  await updateDoc(doc(db, "users", uid), {
+  await updateDoc(doc(db, "users", window.currentUser.uid), {
     unlocked: increment(-amount)
   });
 };
 
 window.exchange = async function () {
-  const rate = 10000;
-  const uid = window.currentUser.uid;
+  if (!window.currentUser) return;
 
-  if (window.state.unlocked < rate) {
+  const rate = 10000;
+
+  if (state.unlocked < rate) {
     return alert("Chuk tidak cukup ❌");
   }
 
-  await updateDoc(doc(db, "users", uid), {
+  await updateDoc(doc(db, "users", window.currentUser.uid), {
     unlocked: increment(-rate)
   });
 
-  alert("Tukar sukses 🟡");
+  alert("Tukar berhasil 🟡");
 };
