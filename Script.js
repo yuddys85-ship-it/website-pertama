@@ -1,8 +1,19 @@
+// =========================
+// DEBUG
+// =========================
+console.log("SCRIPT READY 🚀");
+
+// =========================
+// IMPORT FIREBASE
+// =========================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+
 import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
@@ -16,9 +27,9 @@ import {
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-/* =========================
-   FIREBASE CONFIG
-========================= */
+// =========================
+// FIREBASE CONFIG
+// =========================
 const firebaseConfig = {
   apiKey: "AIzaSyAVTEmz3KXZ8AUK5bV1eyGYeowZAVawLXA",
   authDomain: "chuk-apk-a8d8a.firebaseapp.com",
@@ -28,16 +39,16 @@ const firebaseConfig = {
   appId: "1:387902539002:web:b7d4543ef8a2cc2ea3f543"
 };
 
-/* =========================
-   INIT FIREBASE
-========================= */
+// =========================
+// INIT FIREBASE
+// =========================
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* =========================
-   GLOBAL STATE
-========================= */
+// =========================
+// GLOBAL STATE
+// =========================
 window.currentUser = null;
 
 let state = {
@@ -45,46 +56,65 @@ let state = {
   locked: 0
 };
 
-/* =========================
-   LOGIN GOOGLE
-========================= */
+// =========================
+// LOGIN UNIVERSAL (HP + PC)
+// =========================
 window.loginPi = async function () {
   const provider = new GoogleAuthProvider();
 
   try {
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
-
-    window.currentUser = user;
-    document.getElementById("userName").innerText = user.displayName;
-
-    await createUserIfNotExist(user.uid);
-    listenUser(user.uid);
-
-    openPage("wallet");
-
+    if (/Mobi|Android/i.test(navigator.userAgent)) {
+      // HP → redirect (lebih stabil)
+      await signInWithRedirect(auth, provider);
+    } else {
+      // PC → popup
+      const result = await signInWithPopup(auth, provider);
+      handleLogin(result.user);
+    }
   } catch (err) {
     console.log(err);
     alert("Login gagal ❌");
   }
 };
 
-/* =========================
-   AUTO LOGIN
-========================= */
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    window.currentUser = user;
-    document.getElementById("userName").innerText = user.displayName;
-
-    createUserIfNotExist(user.uid);
-    listenUser(user.uid);
+// =========================
+// HANDLE REDIRECT RESULT (HP)
+// =========================
+getRedirectResult(auth).then((result) => {
+  if (result && result.user) {
+    handleLogin(result.user);
   }
 });
 
-/* =========================
-   CREATE USER
-========================= */
+// =========================
+// AUTO LOGIN
+// =========================
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    handleLogin(user);
+  }
+});
+
+// =========================
+// HANDLE LOGIN USER
+// =========================
+async function handleLogin(user) {
+  window.currentUser = user;
+
+  const nameBox = document.getElementById("userName");
+  if (nameBox) {
+    nameBox.innerText = user.displayName;
+  }
+
+  await createUserIfNotExist(user.uid);
+  listenUser(user.uid);
+
+  openPage("wallet");
+}
+
+// =========================
+// CREATE USER
+// =========================
 async function createUserIfNotExist(uid) {
   const ref = doc(db, "users", uid);
   const snap = await getDoc(ref);
@@ -98,9 +128,9 @@ async function createUserIfNotExist(uid) {
   }
 }
 
-/* =========================
-   REALTIME LISTENER
-========================= */
+// =========================
+// REALTIME LISTENER
+// =========================
 function listenUser(uid) {
   const ref = doc(db, "users", uid);
 
@@ -116,12 +146,11 @@ function listenUser(uid) {
   });
 }
 
-/* =========================
-   NAVIGATION
-========================= */
+// =========================
+// NAVIGATION
+// =========================
 window.openPage = function (page) {
   const content = document.getElementById("content");
-
   if (!content) return;
 
   if (page === "home") {
@@ -132,8 +161,8 @@ window.openPage = function (page) {
     content.innerHTML = `
       <h3>💰 Wallet</h3>
 
-      <p>Unlocked: ${state.unlocked}</p>
-      <p>Locked: ${state.locked}</p>
+      <p>Unlocked: ${state.unlocked || 0}</p>
+      <p>Locked: ${state.locked || 0}</p>
 
       <button onclick="earn()">+100 Earn</button>
       <button onclick="unlock()">Unlock</button>
@@ -154,50 +183,10 @@ window.openPage = function (page) {
   }
 };
 
-/* =========================
-   ACTIONS
-========================= */
+// =========================
+// ACTIONS
+// =========================
 window.earn = async function () {
-  if (!window.currentUser) return;
+  if (!window.currentUser) return alert("Login dulu ❌");
 
-  await updateDoc(doc(db, "users", window.currentUser.uid), {
-    locked: increment(100)
-  });
-};
-
-window.unlock = async function () {
-  if (!window.currentUser) return;
-
-  await updateDoc(doc(db, "users", window.currentUser.uid), {
-    unlocked: increment(state.locked),
-    locked: 0
-  });
-};
-
-window.gift = async function (amount) {
-  if (!window.currentUser) return;
-
-  if (state.unlocked < amount) {
-    return alert("Saldo tidak cukup ❌");
-  }
-
-  await updateDoc(doc(db, "users", window.currentUser.uid), {
-    unlocked: increment(-amount)
-  });
-};
-
-window.exchange = async function () {
-  if (!window.currentUser) return;
-
-  const rate = 10000;
-
-  if (state.unlocked < rate) {
-    return alert("Chuk tidak cukup ❌");
-  }
-
-  await updateDoc(doc(db, "users", window.currentUser.uid), {
-    unlocked: increment(-rate)
-  });
-
-  alert("Tukar berhasil 🟡");
-};
+  await updateDoc(doc(db, "users
