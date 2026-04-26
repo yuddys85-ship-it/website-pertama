@@ -5,6 +5,7 @@
   <title>Chuk an Chukk LEGEND</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- STYLE -->
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -14,7 +15,7 @@
 
   <!-- HEADER -->
   <h1>Chuk an Chukk 🚀</h1>
-  <p>Realtime Wallet System</p>
+  <p>Realtime Wallet Firebase App</p>
 
   <!-- USER INFO -->
   <div id="userBox">
@@ -32,29 +33,42 @@
     <button data-page="gift">Gift</button>
   </div>
 
-  <!-- CONTENT AREA -->
+  <!-- CONTENT -->
   <div id="content">
     <p>Silakan login untuk mulai 🚀</p>
   </div>
 
 </div>
 
-<!-- SCRIPT FIREBASE + APP LOGIC -->
+<!-- =========================
+     SCRIPT APP (WAJIB)
+========================= -->
 <script type="module" src="script.js"></script>
 
-<!-- UI BINDING (LOGIN + MENU CLICK) -->
+<!-- =========================
+     UI CONTROL (AMAN)
+========================= -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
   // LOGIN BUTTON
-  document.getElementById("loginBtn").addEventListener("click", () => {
-    window.loginPi();
-  });
+  const loginBtn = document.getElementById("loginBtn");
+  if (loginBtn) {
+    loginBtn.addEventListener("click", () => {
+      if (window.loginPi) {
+        window.loginPi();
+      } else {
+        alert("Script belum siap ❌");
+      }
+    });
+  }
 
   // MENU NAVIGATION
   document.querySelectorAll("[data-page]").forEach(btn => {
     btn.addEventListener("click", () => {
-      window.openPage(btn.dataset.page);
+      if (window.openPage) {
+        window.openPage(btn.dataset.page);
+      }
     });
   });
 
